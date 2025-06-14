@@ -1,0 +1,21 @@
+const cameraMotions = [
+  { en: '3D Rotation', id: 'Rotasi 3D' },
+  { en: 'Dolly Zoom', id: 'Zoom Dolly' },
+  { en: 'Pan', id: 'Gerakan Pan' },
+  { en: 'Tilt', id: 'Gerakan Tilt' },
+  { en: 'Tracking Shot', id: 'Tracking Shot' },
+  { en: 'Orbit', id: 'Orbit' },
+  { en: 'Crane', id: 'Crane' },
+  { en: 'Handheld', id: 'Handheld' },
+  { en: 'Static', id: 'Statis' },
+  { en: 'Push In', id: 'Dorong Masuk' },
+  { en: 'Pull Out', id: 'Tarik Keluar' },
+  { en: 'Zoom In', id: 'Zoom Masuk' },
+  { en: 'Zoom Out', id: 'Zoom Keluar' },
+  { en: 'Arc', id: 'Gerakan Arc' },
+  { en: 'Pedestal', id: 'Pedestal' },
+  { en: 'Roll', id: 'Roll' },
+  { en: 'Slide', id: 'Slide' },
+  { en: 'POV', id: 'Sudut Pandang Karakter' },
+]
+export default cameraMotions 
