@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { generatePrompt, translatePrompt } from './utils'
+import axios from 'axios'
 
 const HIGHLIGHT_WORDS = [
   // Warna
@@ -50,12 +51,20 @@ function analyzePrompt(promptData) {
 export default function PromptResult({ promptData }) {
   const [idPrompt, setIdPrompt] = useState('')
   const [enPrompt, setEnPrompt] = useState('')
+  const [loadingEn, setLoadingEn] = useState(false)
+  const [editing, setEditing] = useState(false)
 
   useEffect(() => {
     if (promptData) {
       const id = generatePrompt(promptData, 'id')
       setIdPrompt(id)
-      setEnPrompt(translatePrompt(promptData, id))
+      setLoadingEn(true)
+      import('./utils').then(({ autoTranslate }) => {
+        autoTranslate(id).then(result => {
+          setEnPrompt(result)
+          setLoadingEn(false)
+        })
+      })
     }
   }, [promptData])
 
@@ -67,14 +76,52 @@ export default function PromptResult({ promptData }) {
     <div className="prompt-result">
       <div>
         <h2>Prompt Bahasa Indonesia (editable)</h2>
-        <div style={{position:'relative'}}>
-          <textarea value={idPrompt} onChange={e => setIdPrompt(e.target.value)} rows={16} style={{width:'100%',opacity:0.01,position:'absolute',zIndex:1,top:0,left:0,height:'100%'}} />
-          <div className="prompt-highlight" style={{pointerEvents:'none',whiteSpace:'pre-wrap',minHeight:350,padding:'1rem',fontFamily:'Fira Mono, Consolas, monospace',fontSize:'1rem',borderRadius:8,border:'1px solid #bbb',background:'#fafbfc',position:'relative',zIndex:0}} dangerouslySetInnerHTML={{__html:highlightText(idPrompt)}} />
-        </div>
+        {editing ? (
+          <>
+            <textarea
+              value={idPrompt}
+              onChange={e => setIdPrompt(e.target.value)}
+              rows={16}
+              style={{
+                width: '100%',
+                minHeight: 350,
+                fontFamily: 'Fira Mono, Consolas, monospace',
+                fontSize: '1rem',
+                borderRadius: 8,
+                border: '1px solid #bbb',
+                padding: '1rem',
+                background: '#fafbfc'
+              }}
+            />
+            <button onClick={() => setEditing(false)} style={{marginTop: 8, background: '#43a047', color: '#fff', border: 'none', borderRadius: 6, padding: '0.5rem 1.5rem', fontWeight: 600, cursor: 'pointer'}}>Save</button>
+          </>
+        ) : (
+          <div style={{position:'relative'}}>
+            <div
+              className="prompt-highlight"
+              style={{
+                whiteSpace: 'pre-wrap',
+                minHeight: 350,
+                padding: '1rem',
+                fontFamily: 'Fira Mono, Consolas, monospace',
+                fontSize: '1rem',
+                borderRadius: 8,
+                border: '1px solid #bbb',
+                background: '#fafbfc'
+              }}
+              dangerouslySetInnerHTML={{ __html: highlightText(idPrompt) }}
+            />
+            <button onClick={() => setEditing(true)} style={{marginTop: 8, background: '#1e90ff', color: '#fff', border: 'none', borderRadius: 6, padding: '0.5rem 1.5rem', fontWeight: 600, cursor: 'pointer', position: 'absolute', top: 8, right: 8 }}>Edit</button>
+          </div>
+        )}
       </div>
       <div>
         <h2>Prompt Bahasa Inggris (final)</h2>
-        <div className="prompt-highlight" style={{whiteSpace:'pre-wrap',minHeight:350,padding:'1rem',fontFamily:'Fira Mono, Consolas, monospace',fontSize:'1rem',borderRadius:8,border:'1px solid #bbb',background:'#f5f5f5'}} dangerouslySetInnerHTML={{__html:highlightText(enPrompt)}} />
+        {loadingEn ? (
+          <div style={{fontStyle:'italic',color:'#888'}}>Menerjemahkan...</div>
+        ) : (
+          <div className="prompt-highlight" style={{whiteSpace:'pre-wrap',minHeight:350,padding:'1rem',fontFamily:'Fira Mono, Consolas, monospace',fontSize:'1rem',borderRadius:8,border:'1px solid #bbb',background:'#f5f5f5'}} dangerouslySetInnerHTML={{__html:highlightText(enPrompt)}} />
+        )}
       </div>
       <div style={{gridColumn:'1/-1',marginTop:24,padding:'1rem',background:'#e3f6e8',border:'1px solid #b2dfdb',borderRadius:8,color:'#22543d'}}>
         <b>Analisis Kualitas Prompt:</b><br/>
@@ -83,4 +130,19 @@ export default function PromptResult({ promptData }) {
       </div>
     </div>
   )
+}
+
+export async function autoTranslate(text) {
+  if (!text) return '';
+  try {
+    const res = await axios.post('https://libretranslate.de/translate', {
+      q: text,
+      source: 'id',
+      target: 'en',
+      format: 'text'
+    });
+    return res.data.translatedText;
+  } catch (e) {
+    return '[Terjemahan gagal]';
+  }
 } 

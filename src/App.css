@@ -93,6 +93,34 @@
   background: #23272a;
   color: #f1f1f1;
 }
+.container.dark .prompt-form {
+  background: #23272a;
+  color: #f1f1f1;
+  box-shadow: 0 2px 16px #0006;
+}
+.container.dark .prompt-form label,
+.container.dark .prompt-form h3,
+.container.dark .prompt-form .prompt-highlight {
+  color: #f1f1f1;
+}
+.container.dark .prompt-form input,
+.container.dark .prompt-form textarea,
+.container.dark .prompt-form select {
+  background: #23272a;
+  color: #f1f1f1;
+  border: 1px solid #444;
+}
+.container.dark .prompt-form button,
+.container.dark button[type="button"] {
+  background: #444 !important;
+  color: #f1f1f1 !important;
+}
+.container.dark .prompt-form .checklist-box,
+.container.dark .prompt-form .custom-field-box {
+  background: #23272a !important;
+  color: #f1f1f1 !important;
+  border: 1px solid #444 !important;
+}
 .prompt-form {
   display: grid;
   grid-template-columns: 1fr 1fr;

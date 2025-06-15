@@ -182,10 +182,12 @@ function validatePrompt(form) {
 export default function PromptForm({ onGenerate }) {
   const [form, setForm] = useState({ ...initialState, utamaNama: '' })
   const [check, setCheck] = useState(Array(CHECKLIST.length).fill(false))
+  const [highlight, setHighlight] = useState({})
 
   const handleChange = e => {
     const { name, value } = e.target
     setForm(f => ({ ...f, [name]: value }))
+    setHighlight({ [name]: true })
   }
 
   const handlePendampingChange = (idx, e) => {
@@ -270,119 +272,218 @@ export default function PromptForm({ onGenerate }) {
 
   return (
     <form className="prompt-form" onSubmit={handleSubmit}>
-      <label>Nama Karakter Utama
-        <input name="utamaNama" value={form.utamaNama} onChange={handleChange} placeholder="Contoh: Sari" />
-      </label>
-      <label>Judul Adegan
-        <input name="judul" value={form.judul} onChange={handleChange} required />
-        {autofillData[form.judul] && (
-          <button type="button" style={{marginTop:8,background:'#1e90ff',color:'#fff'}} onClick={handleAutofill}>Autofill dari Judul</button>
-        )}
-      </label>
-      {moodboardUrl && (
-        <div style={{gridColumn:'1/-1',margin:'1rem 0',textAlign:'center'}}>
-          <div style={{fontWeight:600,marginBottom:4}}>Preview Sinematik</div>
-          <img src={moodboardUrl} alt="Moodboard" style={{maxWidth:320,borderRadius:12,boxShadow:'0 2px 12px #0002'}} />
-        </div>
-      )}
-      <label>Deskripsi Karakter Utama
-        <AutoSuggestTextarea name="deskripsi" value={form.deskripsi} onChange={handleChange} suggestions={SUGGESTIONS.deskripsi} required />
-      </label>
-      <label>Detail Suara Karakter
-        <textarea name="suara" value={form.suara} onChange={handleChange} required />
-      </label>
-      <label>Aksi Karakter
-        <AutoSuggestTextarea name="aksi" value={form.aksi} onChange={handleChange} suggestions={SUGGESTIONS.aksi} required />
-      </label>
-      <label>Ekspresi Karakter
-        <AutoSuggestTextarea name="ekspresi" value={form.ekspresi} onChange={handleChange} suggestions={SUGGESTIONS.ekspresi} required />
-      </label>
-      <label>Latar Tempat & Waktu
-        <textarea name="latar" value={form.latar} onChange={handleChange} required />
-      </label>
-      <label>Detail Visual Tambahan
-        <AutoSuggestTextarea name="visual" value={form.visual} onChange={handleChange} suggestions={SUGGESTIONS.visual} required />
-      </label>
-      <label>Gerakan Kamera
-        <select name="cameraMotion" value={form.cameraMotion} onChange={handleChange} required>
-          <option value="">Pilih Gerakan Kamera</option>
-          {cameraMotions.map((motion, i) => (
-            <option key={i} value={motion.en}>{motion.en} ({motion.id})</option>
-          ))}
-        </select>
-      </label>
-      <label>Upload Gambar Referensi (opsional)
-        <input type="file" accept="image/*" onChange={handleGambarChange} />
-        {form.gambarRefUrl && (
-          <div style={{marginTop:8}}>
-            <img src={form.gambarRefUrl} alt="Preview" style={{maxWidth:180,maxHeight:120,borderRadius:8,border:'1px solid #ccc'}} />
-            <div><button type="button" onClick={removeGambar} style={{background:'#e57373',marginTop:4}}>Hapus Gambar</button></div>
-            <div style={{fontSize:12, color:'#555'}}>Nama file: {form.gambarRef?.name}</div>
-          </div>
-        )}
-      </label>
-      <label>Suasana Keseluruhan
-        <AutoSuggestTextarea name="suasana" value={form.suasana} onChange={handleChange} suggestions={SUGGESTIONS.suasana} required />
-      </label>
-      <label>Suara Lingkungan/Ambience
-        <textarea name="ambience" value={form.ambience} onChange={handleChange} required />
-      </label>
-      <label>Dialog Karakter
-        <textarea name="dialog" value={form.dialog} onChange={handleChange} required />
-      </label>
-      <label>Negative Prompt
-        <select style={{marginBottom:8}} onChange={e => setForm(f => ({ ...f, negative: e.target.value }))}>
-          <option value="">-- Pilih Preset Negative Prompt --</option>
-          {NEGATIVE_PRESETS.map((p,i)=>(<option key={i} value={p}>{p.slice(0,60)}...</option>))}
-        </select>
-        <textarea name="negative" value={form.negative} onChange={handleChange} required />
-      </label>
-      <div style={{gridColumn:'1/-1',marginTop:'1rem'}}>
-        <h3>Karakter Pendamping</h3>
-        {form.pendamping.map((p, idx) => (
-          <div key={idx} style={{border:'1px solid #ccc',borderRadius:8,padding:12,marginBottom:12,background:'#f9f9f9'}}>
-            <label>Nama Karakter Pendamping
-              <input name="nama" value={p.nama||''} onChange={e => handlePendampingChange(idx, e)} placeholder={`Pendamping #${idx+1}`} />
-            </label>
-            <label>Deskripsi Karakter Pendamping
-              <AutoSuggestTextarea name="deskripsi" value={p.deskripsi} onChange={e => handlePendampingChange(idx, e)} suggestions={SUGGESTIONS.deskripsi} required />
-            </label>
-            <label>Aksi Karakter Pendamping
-              <AutoSuggestTextarea name="aksi" value={p.aksi} onChange={e => handlePendampingChange(idx, e)} suggestions={SUGGESTIONS.aksi} required />
-            </label>
-            <label>Ekspresi Karakter Pendamping
-              <AutoSuggestTextarea name="ekspresi" value={p.ekspresi} onChange={e => handlePendampingChange(idx, e)} suggestions={SUGGESTIONS.ekspresi} required />
-            </label>
-            <label>Dialog Karakter Pendamping
-              <textarea name="dialog" value={p.dialog} onChange={e => handlePendampingChange(idx, e)} required />
-            </label>
-            <button type="button" onClick={() => removePendamping(idx)} style={{background:'#e57373',marginTop:8}}>Hapus Karakter Pendamping</button>
-          </div>
-        ))}
-        <button type="button" onClick={addPendamping} style={{background:'#43a047',color:'#fff'}}>+ Tambah Karakter Pendamping</button>
-      </div>
-      <div style={{gridColumn:'1/-1',margin:'2rem 0 1rem 0',padding:'1rem',background:'#f7fafd',border:'1px solid #b3d1e7',borderRadius:8}}>
-        <div style={{fontWeight:600,marginBottom:8}}>Checklist Konsistensi Karakter</div>
-        {CHECKLIST.map((item, i) => (
-          <label key={i} style={{display:'block',marginBottom:6}}>
-            <input type="checkbox" checked={check[i]} onChange={()=>setCheck(c=>c.map((v,idx)=>idx===i?!v:v))} /> {item}
+      <div className="form-grid">
+        <div className="form-section">
+          <h3>Informasi Dasar</h3>
+          <label>
+            Nama Karakter Utama
+            <input 
+              name="utamaNama" 
+              value={form.utamaNama} 
+              onChange={handleChange} 
+              placeholder="Contoh: Sari" 
+              className={highlight?.utamaNama ? 'highlight' : ''}
+            />
           </label>
-        ))}
-        <div style={{fontSize:12,color:'#888',marginTop:4}}>* Checklist ini opsional, tapi sangat disarankan sebelum generate prompt.</div>
-      </div>
-      <div style={{gridColumn:'1/-1',margin:'2rem 0 1rem 0',padding:'1rem',background:'#f7fafd',border:'1px solid #b3d1e7',borderRadius:8}}>
-        <div style={{fontWeight:600,marginBottom:8}}>Custom Field/Section</div>
-        {(form.customFields||[]).map((f,idx)=>(
-          <div key={idx} style={{display:'flex',gap:8,alignItems:'center',marginBottom:8}}>
-            <input name="title" value={f.title} onChange={e=>handleCustomFieldChange(idx,e)} placeholder="Judul Field (misal: Catatan Sutradara)" style={{flex:2}} />
-            <input name="value" value={f.value} onChange={e=>handleCustomFieldChange(idx,e)} placeholder="Isi Field" style={{flex:3}} />
-            <button type="button" onClick={()=>removeCustomField(idx)} style={{background:'#e57373'}}>Hapus</button>
+          <label>
+            Judul Adegan
+            <div className="input-group">
+              <input 
+                name="judul" 
+                value={form.judul} 
+                onChange={handleChange} 
+                required 
+                className={highlight?.judul ? 'highlight' : ''}
+              />
+              {autofillData[form.judul] && (
+                <button type="button" className="btn btn-primary btn-sm" onClick={handleAutofill}>
+                  <span className="btn-icon">✨</span> Autofill
+                </button>
+              )}
+            </div>
+          </label>
+        </div>
+
+        {moodboardUrl && (
+          <div className="moodboard-section">
+            <h3>Preview Sinematik</h3>
+            <div className="moodboard-container">
+              <img src={moodboardUrl} alt="Moodboard" className="moodboard-image" />
+            </div>
           </div>
-        ))}
-        <button type="button" onClick={addCustomField} style={{background:'#43a047',color:'#fff'}}>+ Tambah Custom Field</button>
+        )}
+
+        <div className="form-section">
+          <h3>Karakter Utama</h3>
+          <label>
+            Deskripsi Karakter
+            <AutoSuggestTextarea 
+              name="deskripsi" 
+              value={form.deskripsi} 
+              onChange={handleChange} 
+              suggestions={SUGGESTIONS.deskripsi} 
+              required 
+              className={highlight?.deskripsi ? 'highlight' : ''}
+            />
+          </label>
+          <label>
+            Detail Suara
+            <textarea 
+              name="suara" 
+              value={form.suara} 
+              onChange={handleChange} 
+              required 
+              className={highlight?.suara ? 'highlight' : ''}
+            />
+          </label>
+          <label>
+            Aksi Karakter
+            <AutoSuggestTextarea 
+              name="aksi" 
+              value={form.aksi} 
+              onChange={handleChange} 
+              suggestions={SUGGESTIONS.aksi} 
+              required 
+              className={highlight?.aksi ? 'highlight' : ''}
+            />
+          </label>
+          <label>
+            Ekspresi Karakter
+            <AutoSuggestTextarea 
+              name="ekspresi" 
+              value={form.ekspresi} 
+              onChange={handleChange} 
+              suggestions={SUGGESTIONS.ekspresi} 
+              required 
+              className={highlight?.ekspresi ? 'highlight' : ''}
+            />
+          </label>
+        </div>
+
+        <div className="form-section">
+          <h3>Latar & Visual</h3>
+          <label>
+            Latar Tempat & Waktu
+            <textarea 
+              name="latar" 
+              value={form.latar} 
+              onChange={handleChange} 
+              required 
+              className={highlight?.latar ? 'highlight' : ''}
+            />
+          </label>
+          <label>
+            Detail Visual
+            <AutoSuggestTextarea 
+              name="visual" 
+              value={form.visual} 
+              onChange={handleChange} 
+              suggestions={SUGGESTIONS.visual} 
+              required 
+              className={highlight?.visual ? 'highlight' : ''}
+            />
+          </label>
+          <label>
+            Gerakan Kamera
+            <select 
+              name="cameraMotion" 
+              value={form.cameraMotion} 
+              onChange={handleChange} 
+              required
+              className={highlight?.cameraMotion ? 'highlight' : ''}
+            >
+              <option value="">Pilih Gerakan Kamera</option>
+              {cameraMotions.map((motion, i) => (
+                <option key={i} value={motion.en}>{motion.en} ({motion.id})</option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <div className="form-section">
+          <h3>Suasana & Dialog</h3>
+          <label>
+            Suasana Keseluruhan
+            <AutoSuggestTextarea 
+              name="suasana" 
+              value={form.suasana} 
+              onChange={handleChange} 
+              suggestions={SUGGESTIONS.suasana} 
+              required 
+              className={highlight?.suasana ? 'highlight' : ''}
+            />
+          </label>
+          <label>
+            Suara Lingkungan
+            <textarea 
+              name="ambience" 
+              value={form.ambience} 
+              onChange={handleChange} 
+              required 
+              className={highlight?.ambience ? 'highlight' : ''}
+            />
+          </label>
+          <label>
+            Dialog Karakter
+            <textarea 
+              name="dialog" 
+              value={form.dialog} 
+              onChange={handleChange} 
+              required 
+              className={highlight?.dialog ? 'highlight' : ''}
+            />
+          </label>
+        </div>
+
+        <div className="form-section">
+          <h3>Referensi & Pengaturan</h3>
+          <label>
+            Upload Gambar Referensi
+            <div className="file-upload">
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={handleGambarChange}
+                className="file-input"
+              />
+              {form.gambarRefUrl && (
+                <div className="image-preview">
+                  <img src={form.gambarRefUrl} alt="Preview" />
+                  <button type="button" className="btn btn-danger btn-sm" onClick={removeGambar}>
+                    <span className="btn-icon">🗑️</span> Hapus
+                  </button>
+                  <div className="file-name">{form.gambarRef?.name}</div>
+                </div>
+              )}
+            </div>
+          </label>
+          <label>
+            Negative Prompt
+            <select 
+              className="negative-preset"
+              onChange={e => setForm(f => ({ ...f, negative: e.target.value }))}
+            >
+              <option value="">-- Pilih Preset Negative Prompt --</option>
+              {NEGATIVE_PRESETS.map((p,i) => (
+                <option key={i} value={p}>{p.slice(0,60)}...</option>
+              ))}
+            </select>
+            <textarea 
+              name="negative" 
+              value={form.negative} 
+              onChange={handleChange} 
+              required 
+              className={highlight?.negative ? 'highlight' : ''}
+            />
+          </label>
+        </div>
       </div>
-      <DialogPreview utama={form.dialog} utamaNama={form.utamaNama} pendamping={form.pendamping} />
-      <button type="submit">Generate Prompt</button>
+
+      <div className="form-actions">
+        <button type="submit" className="btn btn-primary btn-lg">
+          <span className="btn-icon">✨</span> Generate Prompt
+        </button>
+      </div>
     </form>
   )
 } 

@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 function generatePrompt(data, lang = 'id') {
   let pendampingText = ''
   if (data.pendamping && data.pendamping.length > 0) {
@@ -87,6 +89,27 @@ function translate(text) {
     .replace(/keseluruhan/gi, 'overall')
     .replace(/lingkungan/gi, 'environment')
     .replace(/bahasa indonesia/gi, 'Bahasa Indonesia')
+}
+
+export async function autoTranslate(text) {
+  if (!text) return '';
+  try {
+    const res = await axios.post('https://libretranslate.de/translate', {
+      q: text,
+      source: 'id',
+      target: 'en',
+      format: 'text'
+    });
+    if (res.data && res.data.translatedText) {
+      return res.data.translatedText;
+    }
+    // Fallback to basic translation if API fails
+    return translate(text);
+  } catch (e) {
+    console.error('Translation error:', e);
+    // Fallback to basic translation
+    return translate(text);
+  }
 }
 
 export { generatePrompt, translatePrompt } 
